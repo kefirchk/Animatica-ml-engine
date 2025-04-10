@@ -12,7 +12,7 @@ import numpy as np
 import psutil
 import torch
 from demo import load_checkpoints
-from services import AnimationService
+from services import AnimationService, LoggingService
 from skimage import img_as_ubyte
 from skimage.transform import resize
 
@@ -22,19 +22,7 @@ if sys.version_info[0] < 3:
 os.makedirs("./data/output", exist_ok=True)
 os.makedirs("./data/metrics", exist_ok=True)
 
-
-def setup_logger(name):
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
-    return logger
-
-
-log = setup_logger(__name__)
+log = LoggingService.setup_logger(__name__)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--input_image", required=True, help="Path to image to animate")

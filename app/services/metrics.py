@@ -8,6 +8,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from utils.sync_batchnorm import DataParallelWithCallback
 
+log = LoggingService.setup_logger(__name__)
+
 
 class MetricsService:
     @staticmethod
@@ -66,4 +68,4 @@ class MetricsService:
                 image_name = x["name"][0] + config["reconstruction_params"]["format"]
                 imageio.mimsave(os.path.join(log_dir, image_name), visualizations)
 
-        print("Reconstruction loss: %s" % np.mean(loss_list))
+        log.info("Reconstruction loss:", np.mean(loss_list))

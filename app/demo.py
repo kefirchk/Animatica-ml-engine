@@ -9,7 +9,7 @@ import yaml
 from modules.generator import OcclusionAwareGenerator
 from modules.keypoint_detector import KPDetector
 from scipy.spatial import ConvexHull
-from services import AnimationService
+from services import AnimationService, LoggingService
 from skimage import img_as_ubyte
 from skimage.transform import resize
 from tqdm import tqdm
@@ -81,6 +81,7 @@ def find_best_frame(source, driving, cpu=False):
 
 
 if __name__ == "__main__":
+    log = LoggingService.setup_logger(__name__)
     parser = ArgumentParser()
     parser.add_argument("--configs", required=True, help="path to configs")
     parser.add_argument("--checkpoint", default="vox-cpk.pth.tar", help="path to checkpoint to restore")
@@ -117,7 +118,7 @@ if __name__ == "__main__":
         for im in reader:
             driving_video.append(im)
     except RuntimeError as e:
-        print(e)
+        log.error(e)
     reader.close()
 
     source_image = resize(source_image, (256, 256))[..., :3]

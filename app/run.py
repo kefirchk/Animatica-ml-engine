@@ -1,23 +1,28 @@
-import matplotlib
-from services import AnimationService, MetricsService, TrainingService
-
-matplotlib.use("Agg")
-
 import os
 import sys
 from argparse import ArgumentParser
 from shutil import copy
 from time import gmtime, strftime
 
+import matplotlib
 import torch
 import yaml
 from datasets.frames_dataset import FramesDataset
+from modules.discriminator import MultiScaleDiscriminator
+from modules.generator import OcclusionAwareGenerator
+from modules.keypoint_detector import KPDetector
+from services import (
+    AnimationService,
+    LoggingService,
+    MetricsService,
+    TrainingService,
+)
 
-from app.modules.discriminator import MultiScaleDiscriminator
-from app.modules.generator import OcclusionAwareGenerator
-from app.modules.keypoint_detector import KPDetector
+matplotlib.use("Agg")
+
 
 if __name__ == "__main__":
+    log = LoggingService.setup_logger(__name__)
 
     if sys.version_info[0] < 3:
         raise Exception("You must use Python 3 or higher. Recommended version is Python 3.7")
@@ -53,7 +58,7 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         generator.to(opt.device_ids[0])
     if opt.verbose:
-        print(generator)
+        log.info(generator)
 
     discriminator = MultiScaleDiscriminator(
         **config["model_params"]["discriminator_params"], **config["model_params"]["common_params"]
@@ -61,7 +66,7 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         discriminator.to(opt.device_ids[0])
     if opt.verbose:
-        print(discriminator)
+        log.info(discriminator)
 
     kp_detector = KPDetector(**config["model_params"]["kp_detector_params"], **config["model_params"]["common_params"])
 
@@ -69,7 +74,7 @@ if __name__ == "__main__":
         kp_detector.to(opt.device_ids[0])
 
     if opt.verbose:
-        print(kp_detector)
+        log.info(kp_detector)
 
     dataset = FramesDataset(is_train=(opt.mode == "train"), **config["dataset_params"])
 
@@ -79,13 +84,13 @@ if __name__ == "__main__":
         copy(opt.config, log_dir)
 
     if opt.mode == "train":
-        print("Training...")
+        log.info("Training...")
         TrainingService.train(
             config, generator, discriminator, kp_detector, opt.checkpoint, log_dir, dataset, opt.device_ids
         )
     elif opt.mode == "reconstruction":
-        print("Reconstruction...")
+        log.info("Reconstruction...")
         MetricsService.reconstruction(config, generator, kp_detector, opt.checkpoint, log_dir, dataset)
     elif opt.mode == "animate":
-        print("Animate...")
+        log.info("Animate...")
         AnimationService.animate(config, generator, kp_detector, opt.checkpoint, log_dir, dataset)
