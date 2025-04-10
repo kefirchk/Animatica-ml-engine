@@ -3,13 +3,12 @@ import os
 
 import numpy as np
 import pandas as pd
+from datasets.augmentation import AllAugmentationTransform
 from imageio import mimread
 from skimage import img_as_float32, io
 from skimage.color import gray2rgb
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
-
-from augmentation import AllAugmentationTransform
 
 
 def read_video(name, frame_shape):
@@ -143,11 +142,9 @@ class FramesDataset(Dataset):
 
 
 class DatasetRepeater(Dataset):
-    """
-    Pass several times over the same dataset for better i/o performance
-    """
+    """Pass several times over the same dataset for better i/o performance."""
 
-    def __init__(self, dataset, num_repeats=100):
+    def __init__(self, dataset, num_repeats: int = 100):
         self.dataset = dataset
         self.num_repeats = num_repeats
 
@@ -159,9 +156,7 @@ class DatasetRepeater(Dataset):
 
 
 class PairedDataset(Dataset):
-    """
-    Dataset of pairs for animation.
-    """
+    """Dataset of pairs for services."""
 
     def __init__(self, initial_dataset, number_of_pairs, seed=0):
         self.initial_dataset = initial_dataset

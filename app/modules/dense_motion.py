@@ -1,13 +1,12 @@
 import torch
 import torch.nn.functional as F
-from torch import nn
-
 from modules.util import (
     AntiAliasInterpolation2d,
     Hourglass,
     kp2gaussian,
     make_coordinate_grid,
 )
+from torch import nn
 
 
 class DenseMotionNetwork(nn.Module):
@@ -50,9 +49,7 @@ class DenseMotionNetwork(nn.Module):
             self.down = AntiAliasInterpolation2d(num_channels, self.scale_factor)
 
     def create_heatmap_representations(self, source_image, kp_driving, kp_source):
-        """
-        Eq 6. in the paper H_k(z)
-        """
+        """Eq 6. in the paper H_k(z)"""
         spatial_size = source_image.shape[2:]
         gaussian_driving = kp2gaussian(kp_driving, spatial_size=spatial_size, kp_variance=self.kp_variance)
         gaussian_source = kp2gaussian(kp_source, spatial_size=spatial_size, kp_variance=self.kp_variance)
@@ -65,9 +62,7 @@ class DenseMotionNetwork(nn.Module):
         return heatmap
 
     def create_sparse_motions(self, source_image, kp_driving, kp_source):
-        """
-        Eq 4. in the paper T_{s<-d}(z)
-        """
+        """Eq 4. in the paper T_{s<-d}(z)"""
         bs, _, h, w = source_image.shape
         identity_grid = make_coordinate_grid((h, w), type=kp_source["value"].type())
         identity_grid = identity_grid.view(1, 1, h, w, 2)
@@ -87,9 +82,7 @@ class DenseMotionNetwork(nn.Module):
         return sparse_motions
 
     def create_deformed_source_image(self, source_image, sparse_motions):
-        """
-        Eq 7. in the paper \hat{T}_{s<-d}(z)
-        """
+        """Eq 7. in the paper \hat{T}_{s<-d}(z)"""
         bs, _, h, w = source_image.shape
         source_repeat = source_image.unsqueeze(1).unsqueeze(1).repeat(1, self.num_kp + 1, 1, 1, 1, 1)
         source_repeat = source_repeat.view(bs * (self.num_kp + 1), -1, h, w)

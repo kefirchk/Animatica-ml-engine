@@ -2,13 +2,11 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from modules.util import kp2gaussian
+from app.modules.util import kp2gaussian
 
 
 class DownBlock2d(nn.Module):
-    """
-    Simple block for processing video (encoder).
-    """
+    """Simple block for processing video (encoder)."""
 
     def __init__(self, in_features, out_features, norm=False, kernel_size=4, pool=False, sn=False):
         super(DownBlock2d, self).__init__()
@@ -30,21 +28,19 @@ class DownBlock2d(nn.Module):
 
 
 class Discriminator(nn.Module):
-    """
-    Discriminator similar to Pix2Pix
-    """
+    """Discriminator similar to Pix2Pix."""
 
     def __init__(
         self,
-        num_channels=3,
-        block_expansion=64,
-        num_blocks=4,
-        max_features=512,
-        sn=False,
-        use_kp=False,
-        num_kp=10,
-        kp_variance=0.01,
-        **kwargs
+        num_channels: int = 3,
+        block_expansion: int = 64,
+        num_blocks: int = 4,
+        max_features: int = 512,
+        sn: bool = False,
+        use_kp: bool = False,
+        num_kp: int = 10,
+        kp_variance: float = 0.01,
+        **_
     ) -> None:
         super(Discriminator, self).__init__()
 
@@ -83,9 +79,7 @@ class Discriminator(nn.Module):
 
 
 class MultiScaleDiscriminator(nn.Module):
-    """
-    Multi-scale (scale) discriminator
-    """
+    """Multi-scale (scale) discriminator."""
 
     def __init__(self, scales=(), **kwargs):
         super(MultiScaleDiscriminator, self).__init__()

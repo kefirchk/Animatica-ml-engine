@@ -1,19 +1,16 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+from modules.util import AntiAliasInterpolation2d, make_coordinate_grid
 from torch import nn
 from torch.autograd import grad
 from torchvision import models
 
-from modules.util import AntiAliasInterpolation2d, make_coordinate_grid
-
 
 class Vgg19(torch.nn.Module):
-    """
-    Vgg19 network for perceptual loss. See Sec 3.3.
-    """
+    """Vgg19 network for perceptual loss. See Sec 3.3."""
 
-    def __init__(self, requires_grad=False):
+    def __init__(self, requires_grad: bool = False):
         super(Vgg19, self).__init__()
         vgg_pretrained_features = models.vgg19(pretrained=True).features
         self.slice1 = torch.nn.Sequential()
@@ -55,9 +52,7 @@ class Vgg19(torch.nn.Module):
 
 
 class ImagePyramide(torch.nn.Module):
-    """
-    Create image pyramide for computing pyramide perceptual loss. See Sec 3.3
-    """
+    """Create image pyramide for computing pyramide perceptual loss. See Sec 3.3."""
 
     def __init__(self, scales, num_channels):
         super(ImagePyramide, self).__init__()
@@ -74,9 +69,7 @@ class ImagePyramide(torch.nn.Module):
 
 
 class Transform:
-    """
-    Random tps transformation for equivariance constraints. See Sec 3.3
-    """
+    """Random tps transformation for equivariance constraints. See Sec 3.3."""
 
     def __init__(self, bs, **kwargs):
         noise = torch.normal(mean=0, std=kwargs["sigma_affine"] * torch.ones([bs, 2, 3]))
@@ -132,9 +125,7 @@ def detach_kp(kp):
 
 
 class GeneratorFullModel(torch.nn.Module):
-    """
-    Merge all generator related updates into single model for better multi-gpu usage
-    """
+    """Merge all generator related updates into single model for better multi-gpu usage."""
 
     def __init__(self, kp_extractor, generator, discriminator, train_params):
         super(GeneratorFullModel, self).__init__()
@@ -231,9 +222,7 @@ class GeneratorFullModel(torch.nn.Module):
 
 
 class DiscriminatorFullModel(torch.nn.Module):
-    """
-    Merge all discriminator related updates into single model for better multi-gpu usage
-    """
+    """Merge all discriminator related updates into single model for better multi-gpu usage."""
 
     def __init__(self, kp_extractor, generator, discriminator, train_params):
         super(DiscriminatorFullModel, self).__init__()

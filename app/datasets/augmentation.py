@@ -1,8 +1,3 @@
-"""
-Code from https://github.com/hassony2/torch_videovision
-"""
-
-import numbers
 import random
 import warnings
 
@@ -16,13 +11,11 @@ from skimage.util import pad
 
 def crop_clip(clip, min_h, min_w, h, w):
     if isinstance(clip[0], np.ndarray):
-        cropped = [img[min_h : min_h + h, min_w : min_w + w, :] for img in clip]
-
+        return [img[min_h : min_h + h, min_w : min_w + w, :] for img in clip]
     elif isinstance(clip[0], PIL.Image.Image):
-        cropped = [img.crop((min_w, min_h, min_w + w, min_h + h)) for img in clip]
+        return [img.crop((min_w, min_h, min_w + w, min_h + h)) for img in clip]
     else:
         raise TypeError("Expected numpy.ndarray or PIL.Image" + "but got list of {0}".format(type(clip[0])))
-    return cropped
 
 
 def pad_clip(clip, h, w):
@@ -33,9 +26,9 @@ def pad_clip(clip, h, w):
     return pad(clip, ((0, 0), pad_h, pad_w, (0, 0)), mode="edge")
 
 
-def resize_clip(clip, size, interpolation="bilinear"):
+def resize_clip(clip, size, interpolation: str = "bilinear"):
     if isinstance(clip[0], np.ndarray):
-        if isinstance(size, numbers.Number):
+        if isinstance(size, int):
             im_h, im_w, im_c = clip[0].shape
             # Min spatial dim already matches minimal size
             if (im_w <= im_h and im_w == size) or (im_h <= im_w and im_h == size):
@@ -57,7 +50,7 @@ def resize_clip(clip, size, interpolation="bilinear"):
             for img in clip
         ]
     elif isinstance(clip[0], PIL.Image.Image):
-        if isinstance(size, numbers.Number):
+        if isinstance(size, int):
             im_w, im_h = clip[0].size
             # Min spatial dim already matches minimal size
             if (im_w <= im_h and im_w == size) or (im_h <= im_w and im_h == size):
@@ -100,17 +93,16 @@ class RandomFlip(object):
         return clip
 
 
-class RandomResize(object):
+class RandomResize:
     """Resizes a list of (H x W x C) numpy.ndarray to the final size
     The larger the original image is, the more times it takes to
     interpolate
     Args:
-    interpolation (str): Can be one of 'nearest', 'bilinear'
-    defaults to nearest
-    size (tuple): (widht, height)
+        interpolation (str): Can be one of 'nearest', 'bilinear' defaults to nearest
+        ratio (tuple): (widht, height)
     """
 
-    def __init__(self, ratio=(3.0 / 4.0, 4.0 / 3.0), interpolation="nearest"):
+    def __init__(self, ratio: tuple[float] = (3.0 / 4.0, 4.0 / 3.0), interpolation: str = "nearest"):
         self.ratio = ratio
         self.interpolation = interpolation
 
@@ -130,26 +122,21 @@ class RandomResize(object):
         return resized
 
 
-class RandomCrop(object):
+class RandomCrop:
     """Extract random crop at the same location for a list of videos
     Args:
-    size (sequence or int): Desired output size for the
-    crop in format (h, w)
+        size (sequence or int): Desired output size for the crop in format (h, w)
     """
 
-    def __init__(self, size):
-        if isinstance(size, numbers.Number):
-            size = (size, size)
-
-        self.size = size
+    def __init__(self, size: int | tuple):
+        self.size = (size, size) if isinstance(size, int) else size
 
     def __call__(self, clip):
         """
         Args:
-        img (PIL.Image or numpy.ndarray): List of videos to be cropped
-        in format (h, w, c) in numpy.ndarray
+            img (PIL.Image or numpy.ndarray): List of videos to be cropped in format (h, w, c) in numpy.ndarray
         Returns:
-        PIL.Image or numpy.ndarray: Cropped list of videos
+            PIL.Image or numpy.ndarray: Cropped list of videos
         """
         h, w = self.size
         if isinstance(clip[0], np.ndarray):
@@ -168,7 +155,7 @@ class RandomCrop(object):
         return cropped
 
 
-class RandomRotation(object):
+class RandomRotation:
     """Rotate entire clip randomly by a random angle within
     given bounds
     Args:
@@ -178,7 +165,7 @@ class RandomRotation(object):
     """
 
     def __init__(self, degrees):
-        if isinstance(degrees, numbers.Number):
+        if isinstance(degrees, int):
             if degrees < 0:
                 raise ValueError("If degrees is a single number," "must be positive")
             degrees = (-degrees, degrees)
@@ -207,7 +194,7 @@ class RandomRotation(object):
         return rotated
 
 
-class ColorJitter(object):
+class ColorJitter:
     """Randomly change the brightness, contrast and saturation and hue of the clip
     Args:
     brightness (float): How much to jitter brightness. brightness_factor
@@ -220,17 +207,17 @@ class ColorJitter(object):
     [-hue, hue]. Should be >=0 and <= 0.5.
     """
 
-    def __init__(self, brightness=0, contrast=0, saturation=0, hue=0):
+    def __init__(self, brightness: float = 0, contrast: float = 0, saturation: float = 0, hue: float = 0):
         self.brightness = brightness
         self.contrast = contrast
         self.saturation = saturation
         self.hue = hue
 
     @staticmethod
-    def get_params(brightness, contrast, saturation, hue):
-        brightness_factor = random.uniform(max(0, 1 - brightness), 1 + brightness) if brightness > 0 else None
-        contrast_factor = random.uniform(max(0, 1 - contrast), 1 + contrast) if contrast > 0 else None
-        saturation_factor = random.uniform(max(0, 1 - saturation), 1 + saturation) if saturation > 0 else None
+    def get_params(brightness: float, contrast: float, saturation: float, hue: float):
+        brightness_factor = random.uniform(max(0.0, 1 - brightness), 1 + brightness) if brightness > 0 else None
+        contrast_factor = random.uniform(max(0.0, 1 - contrast), 1 + contrast) if contrast > 0 else None
+        saturation_factor = random.uniform(max(0.0, 1 - saturation), 1 + saturation) if saturation > 0 else None
         hue_factor = random.uniform(-hue, hue) if hue > 0 else None
         return brightness_factor, contrast_factor, saturation_factor, hue_factor
 
@@ -302,20 +289,16 @@ class AllAugmentationTransform:
     def __init__(self, resize_param=None, rotation_param=None, flip_param=None, crop_param=None, jitter_param=None):
         self.transforms = []
 
-        if flip_param:
-            self.transforms.append(RandomFlip(**flip_param))
-
-        if rotation_param:
-            self.transforms.append(RandomRotation(**rotation_param))
-
-        if resize_param:
-            self.transforms.append(RandomResize(**resize_param))
-
-        if crop_param:
-            self.transforms.append(RandomCrop(**crop_param))
-
-        if jitter_param:
-            self.transforms.append(ColorJitter(**jitter_param))
+        params = {
+            RandomFlip: flip_param,
+            RandomRotation: rotation_param,
+            RandomResize: resize_param,
+            RandomCrop: crop_param,
+            ColorJitter: jitter_param,
+        }
+        for Factory, param in params.items():
+            if param:
+                self.transforms.append(Factory(**param))
 
     def __call__(self, clip):
         for t in self.transforms:

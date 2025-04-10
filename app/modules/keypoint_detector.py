@@ -1,31 +1,28 @@
 import torch
 import torch.nn.functional as F
-from torch import nn
-
 from modules.util import (
     AntiAliasInterpolation2d,
     Hourglass,
     make_coordinate_grid,
 )
+from torch import nn
 
 
 class KPDetector(nn.Module):
-    """
-    Detecting a keypoints. Return keypoint position and jacobian near each keypoint.
-    """
+    """Detecting a keypoints. Return keypoint position and jacobian near each keypoint."""
 
     def __init__(
         self,
         block_expansion,
         num_kp,
         num_channels,
-        max_features,
-        num_blocks,
+        max_features: int,
+        num_blocks: int,
         temperature,
-        estimate_jacobian=False,
+        estimate_jacobian: bool = False,
         scale_factor=1,
-        single_jacobian_map=False,
-        pad=0,
+        single_jacobian_map: bool = False,
+        pad: str | int | tuple[int, int] = 0,
     ) -> None:
         super(KPDetector, self).__init__()
 
@@ -57,9 +54,7 @@ class KPDetector(nn.Module):
 
     @staticmethod
     def gaussian2kp(heatmap):
-        """
-        Extract the mean and from a heatmap
-        """
+        """Extract the mean and from a heatmap."""
         shape = heatmap.shape
         heatmap = heatmap.unsqueeze(-1)
         grid = make_coordinate_grid(shape[2:], heatmap.type()).unsqueeze_(0).unsqueeze_(0)

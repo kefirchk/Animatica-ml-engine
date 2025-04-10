@@ -1,9 +1,8 @@
 import torch
 import torch.nn.functional as F
-from torch import nn
-
 from modules.dense_motion import DenseMotionNetwork
 from modules.util import DownBlock2d, ResBlock2d, SameBlock2d, UpBlock2d
+from torch import nn
 
 
 class OcclusionAwareGenerator(nn.Module):
@@ -14,15 +13,15 @@ class OcclusionAwareGenerator(nn.Module):
 
     def __init__(
         self,
-        num_channels,
+        num_channels: int,
         num_kp,
         block_expansion,
-        max_features,
+        max_features: int,
         num_down_blocks,
         num_bottleneck_blocks,
-        estimate_occlusion_map=False,
+        estimate_occlusion_map: bool = False,
         dense_motion_params=None,
-        estimate_jacobian=False,
+        estimate_jacobian: bool = False,
     ) -> None:
         super(OcclusionAwareGenerator, self).__init__()
 
@@ -80,7 +79,7 @@ class OcclusionAwareGenerator(nn.Module):
 
         # Transforming feature representation according to deformation and occlusion
         output_dict = {}
-        if self.dense_motion_network is not None:
+        if self.dense_motion_network:
             dense_motion = self.dense_motion_network(
                 source_image=source_image, kp_driving=kp_driving, kp_source=kp_source
             )
