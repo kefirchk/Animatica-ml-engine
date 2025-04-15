@@ -1,5 +1,5 @@
 from src.datasets import FramesDataset
-from src.runners.base_runner import BaseRunner
+from src.runners.base import BaseRunner
 from src.services.animation import AnimationService
 
 

@@ -14,8 +14,8 @@ class BaseRunner(ABC):
 
         model_service = ModelService(args.configs, args.checkpoint, args.log_dir, cpu=args.cpu)
 
-        self.config = model_service.get_config()
-        self.log_dir = model_service.get_log_dir()
+        self.config = model_service.config
+        self.log_dir = model_service.log_dir
 
         self.generator, self.discriminator, self.kp_detector = model_service.init_training_models(self.device_ids)
 

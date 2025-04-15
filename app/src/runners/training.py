@@ -1,4 +1,4 @@
-from src.runners.base_runner import BaseRunner
+from src.runners.base import BaseRunner
 from src.services.datasets.frames_dataset import FramesDataset
 from src.services.training_service import TrainingService
 

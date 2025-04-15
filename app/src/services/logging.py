@@ -31,7 +31,7 @@ class LoggingService:
         self.names = None
         self.models = None
 
-    def log_scores(self, loss_names):
+    def log_scores(self, loss_names) -> None:
         loss_mean = np.array(self.loss_list).mean(axis=0)
 
         loss_string = "; ".join(["%s - %.5f" % (name, value) for name, value in zip(loss_names, loss_mean)])
@@ -41,13 +41,13 @@ class LoggingService:
         self.loss_list = []
         self.log_file.flush()
 
-    def visualize_rec(self, inp, out):
+    def visualize_rec(self, inp, out) -> None:
         image = self.visualizer.visualize(inp["driving"], inp["source"], out)
         imageio.imsave(
             os.path.join(self.visualizations_dir, "%s-rec.png" % str(self.epoch).zfill(self.zfill_num)), image
         )
 
-    def save_cpk(self, emergent: bool = False):
+    def save_cpk(self, emergent: bool = False) -> None:
         cpk = {k: v.state_dict() for k, v in self.models.items()}
         cpk["epoch"] = self.epoch
         cpk_path = os.path.join(self.cpk_dir, "%s-checkpoint.pth.tar" % str(self.epoch).zfill(self.zfill_num))
@@ -90,18 +90,18 @@ class LoggingService:
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         if "models" in self.__dict__:
             self.save_cpk()
         self.log_file.close()
 
-    def log_iter(self, losses):
+    def log_iter(self, losses) -> None:
         losses = collections.OrderedDict(losses.items())
         if self.names is None:
             self.names = list(losses.keys())
         self.loss_list.append(list(losses.values()))
 
-    def log_epoch(self, epoch, models, inp, out):
+    def log_epoch(self, epoch, models, inp, out) -> None:
         self.epoch = epoch
         self.models = models
         if (self.epoch + 1) % self.checkpoint_freq == 0:
@@ -110,7 +110,7 @@ class LoggingService:
         self.visualize_rec(inp, out)
 
     @staticmethod
-    def setup_logger(name):
+    def setup_logger(name: str) -> logging.Logger:
         logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter(

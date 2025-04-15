@@ -1,6 +1,6 @@
 import os
 
-import imageio
+import cv2
 import numpy as np
 import torch
 from src.services.logging import LoggingService
@@ -64,9 +64,28 @@ class ReconstructionService:
                     loss_list.append(torch.abs(out["prediction"] - driving).mean().cpu().numpy())
 
                 predictions = np.concatenate(predictions, axis=1)
-                imageio.imsave(os.path.join(png_dir, x["name"][0] + ".png"), (255 * predictions).astype(np.uint8))
+
+                # Save concatenated predictions as PNG using OpenCV
+                image = (255 * predictions).astype(np.uint8)
+                image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                cv2.imwrite(os.path.join(png_dir, x["name"][0] + ".png"), image)
 
                 image_name = x["name"][0] + config["reconstruction_params"]["format"]
-                imageio.mimsave(os.path.join(log_dir, image_name), visualizations)
+
+                # Save visualizations as video using OpenCV
+                if visualizations:
+                    fps = config["reconstruction_params"].get("fps", 30)
+                    frame_height, frame_width = visualizations[0].shape[:2]
+
+                    # Determine FourCC based on file extension
+                    file_ext = config["reconstruction_params"]["format"].lower()
+                    fourcc = {".mp4": "mp4v", ".avi": "XVID", ".mov": "MJPG"}.get(file_ext, "mp4v")
+                    fourcc_code = cv2.VideoWriter_fourcc(*fourcc)
+                    video_path = os.path.join(log_dir, image_name)
+                    video_writer = cv2.VideoWriter(video_path, fourcc_code, fps, (frame_width, frame_height))
+                    for frame in visualizations:
+                        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                        video_writer.write(frame_bgr)
+                    video_writer.release()
 
         log.info("Reconstruction loss:", np.mean(loss_list))
