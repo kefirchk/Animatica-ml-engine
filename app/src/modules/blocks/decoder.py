@@ -6,23 +6,27 @@ from torch import nn
 class Decoder(nn.Module):
     """Hourglass Decoder."""
 
-    def __init__(self, block_expansion, in_features, num_blocks: int = 3, max_features: int = 256):
-        super(Decoder, self).__init__()
+    def __init__(self, block_expansion: int, in_features: int, num_blocks: int = 3, max_features: int = 256) -> None:
+        super().__init__()
 
-        up_blocks = []
+        def num_channels(scale):
+            return min(max_features, block_expansion * (2**scale))
 
-        for i in range(num_blocks)[::-1]:
-            in_filters = (1 if i == num_blocks - 1 else 2) * min(max_features, block_expansion * (2 ** (i + 1)))
-            out_filters = min(max_features, block_expansion * (2**i))
-            up_blocks.append(UpBlock2d(in_filters, out_filters, kernel_size=3, padding=1))
+        self.up_blocks = nn.ModuleList(
+            [
+                UpBlock2d(
+                    in_features=(1 if i == num_blocks - 1 else 2) * num_channels(i + 1), out_features=num_channels(i)
+                )
+                for i in reversed(range(num_blocks))
+            ]
+        )
 
-        self.up_blocks = nn.ModuleList(up_blocks)
         self.out_filters = block_expansion + in_features
 
     def forward(self, x):
         out = x.pop()
-        for up_block in self.up_blocks:
-            out = up_block(out)
+        for block in self.up_blocks:
+            out = block(out)
             skip = x.pop()
             out = torch.cat([out, skip], dim=1)
         return out
