@@ -23,6 +23,16 @@ def kp2gaussian(kp, spatial_size, kp_variance):
     return out
 
 
+def gaussian2kp(heatmap):
+    """Extract the mean and from a heatmap."""
+    shape = heatmap.shape
+    heatmap = heatmap.unsqueeze(-1)
+    grid = make_coordinate_grid(shape[2:], heatmap.type()).unsqueeze_(0).unsqueeze_(0)
+    value = (heatmap * grid).sum(dim=(2, 3))
+    kp = {"value": value}
+    return kp
+
+
 def detach_kp(kp):
     return {key: value.detach() for key, value in kp.items()}
 

@@ -1,42 +1,47 @@
 import torch
 import torch.nn.functional as F
 from src.modules.blocks import AntiAliasInterpolation2d, Hourglass
-from src.modules.utils.utils import make_coordinate_grid
+from src.modules.utils.utils import gaussian2kp, make_coordinate_grid
 from torch import nn
 
 
 class KPDetector(nn.Module):
-    """Detecting a keypoints. Return keypoint position and jacobian near each keypoint."""
+    """Detects keypoints and (optionally) estimates a Jacobian matrix near each keypoint."""
 
     def __init__(
         self,
-        block_expansion,
-        num_kp,
-        num_channels,
+        block_expansion: int,
+        num_kp: int,
+        num_channels: int,
         max_features: int,
         num_blocks: int,
-        temperature,
+        temperature: float,
         estimate_jacobian: bool = False,
-        scale_factor=1,
+        scale_factor: float = 1.0,
         single_jacobian_map: bool = False,
         pad: str | int | tuple[int, int] = 0,
     ) -> None:
-        super(KPDetector, self).__init__()
+        super().__init__()
+        self.temperature = temperature
+        self.scale_factor = scale_factor
+        self.estimate_jacobian = estimate_jacobian
+        self.num_kp = num_kp
 
+        # Backbone feature extractor
         self.predictor = Hourglass(
             block_expansion, in_features=num_channels, max_features=max_features, num_blocks=num_blocks
         )
 
-        self.kp = nn.Conv2d(
-            in_channels=self.predictor.out_filters, out_channels=num_kp, kernel_size=(7, 7), padding=pad
-        )
+        # Keypoint heatmap prediction
+        self.kp = nn.Conv2d(in_channels=self.predictor.out_filters, out_channels=num_kp, kernel_size=7, padding=pad)
 
+        # Optional Jacobian estimation
         if estimate_jacobian:
             self.num_jacobian_maps = 1 if single_jacobian_map else num_kp
             self.jacobian = nn.Conv2d(
                 in_channels=self.predictor.out_filters,
                 out_channels=4 * self.num_jacobian_maps,
-                kernel_size=(7, 7),
+                kernel_size=7,
                 padding=pad,
             )
             self.jacobian.weight.data.zero_()
@@ -44,46 +49,27 @@ class KPDetector(nn.Module):
         else:
             self.jacobian = None
 
-        self.temperature = temperature
-        self.scale_factor = scale_factor
-        if self.scale_factor != 1:
-            self.down = AntiAliasInterpolation2d(num_channels, self.scale_factor)
-
-    @staticmethod
-    def gaussian2kp(heatmap):
-        """Extract the mean and from a heatmap."""
-        shape = heatmap.shape
-        heatmap = heatmap.unsqueeze(-1)
-        grid = make_coordinate_grid(shape[2:], heatmap.type()).unsqueeze_(0).unsqueeze_(0)
-        value = (heatmap * grid).sum(dim=(2, 3))
-        kp = {"value": value}
-        return kp
+        self.down = AntiAliasInterpolation2d(num_channels, scale_factor) if scale_factor != 1 else None
 
     def forward(self, x):
-        if self.scale_factor != 1:
+        if self.down:
             x = self.down(x)
 
         feature_map = self.predictor(x)
-        prediction = self.kp(feature_map)
+        heatmap = self.kp(feature_map)
 
-        final_shape = prediction.shape
-        heatmap = prediction.view(final_shape[0], final_shape[1], -1)
-        heatmap = F.softmax(heatmap / self.temperature, dim=2)
-        heatmap = heatmap.view(*final_shape)
+        B, K, H, W = heatmap.shape
+        heatmap_flat = heatmap.view(B, K, -1)
+        heatmap = F.softmax(heatmap_flat / self.temperature, dim=2).view(B, K, H, W)
 
-        out = self.gaussian2kp(heatmap)
+        out = gaussian2kp(heatmap)
 
         if self.jacobian:
-            jacobian_map = self.jacobian(feature_map)
-            jacobian_map = jacobian_map.reshape(
-                final_shape[0], self.num_jacobian_maps, 4, final_shape[2], final_shape[3]
-            )
-            heatmap = heatmap.unsqueeze(2)
+            jacobian_map = self.jacobian(feature_map)  # shape: [B, 4*num_maps, H, W]
+            jacobian_map = jacobian_map.view(B, self.num_jacobian_maps, 4, H, W)
 
-            jacobian = heatmap * jacobian_map
-            jacobian = jacobian.view(final_shape[0], final_shape[1], 4, -1)
-            jacobian = jacobian.sum(dim=-1)
-            jacobian = jacobian.view(jacobian.shape[0], jacobian.shape[1], 2, 2)
+            weighted = (heatmap.unsqueeze(2) * jacobian_map).view(B, K, 4, -1)
+            jacobian = weighted.sum(dim=-1).view(B, K, 2, 2)
             out["jacobian"] = jacobian
 
         return out
