@@ -18,7 +18,7 @@ class AnimationService:
     def make_animation(
         cls,
         source_image: np.ndarray,
-        driving_video: np.ndarray,
+        driving_video: list[np.ndarray],
         generator: torch.nn.Module,
         kp_detector: torch.nn.Module,
         relative: bool = True,
@@ -80,7 +80,7 @@ class AnimationService:
         return np.transpose(tensor.data.cpu().numpy(), [0, 2, 3, 1])[0]
 
     @staticmethod
-    def _video_to_tensor(video: np.ndarray) -> torch.Tensor:
+    def _video_to_tensor(video: list[np.ndarray]) -> torch.Tensor:
         """Convert numpy video to tensor."""
         return torch.from_numpy(np.array(video)[np.newaxis].astype(np.float32)).permute(0, 4, 1, 2, 3)
 
