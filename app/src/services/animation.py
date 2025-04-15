@@ -3,7 +3,7 @@ import os
 import numpy as np
 import torch
 from scipy.spatial import ConvexHull
-from src.datasets.frames_dataset import PairedDataset
+from src.datasets.paired_dataset import PairedDataset
 from src.services.logging import LoggingService
 from src.services.sync_batchnorm import DataParallelWithCallback
 from src.services.visualization import VisualizationService
