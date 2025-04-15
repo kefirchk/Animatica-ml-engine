@@ -8,7 +8,9 @@ from src.datasets.augmentation.transforms import (
 
 
 class AllAugmentationTransform:
-    def __init__(self, resize_param=None, rotation_param=None, flip_param=None, crop_param=None, jitter_param=None):
+    def __init__(
+        self, resize_param=None, rotation_param=None, flip_param=None, crop_param=None, jitter_param=None
+    ) -> None:
         self.transforms = []
 
         params = {

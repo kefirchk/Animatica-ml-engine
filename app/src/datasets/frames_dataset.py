@@ -20,14 +20,14 @@ class FramesDataset(Dataset):
 
     def __init__(
         self,
-        root_dir,
+        root_dir: str,
         frame_shape=(256, 256, 3),
-        id_sampling=False,
-        is_train=True,
+        id_sampling: bool = False,
+        is_train: bool = True,
         random_seed=0,
         pairs_list=None,
         augmentation_params=None,
-    ):
+    ) -> None:
         self.root_dir = root_dir
         self.videos = os.listdir(root_dir)
         self.frame_shape = tuple(frame_shape)
@@ -53,10 +53,10 @@ class FramesDataset(Dataset):
         self.transform = AllAugmentationTransform(**augmentation_params) if is_train else None
         self.is_train = is_train
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.videos)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         if self.is_train and self.id_sampling:
             name = self.videos[idx]
             path = np.random.choice(glob.glob(os.path.join(self.root_dir, name + "*.mp4")))

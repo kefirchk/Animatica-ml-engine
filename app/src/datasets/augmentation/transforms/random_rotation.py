@@ -1,20 +1,18 @@
 import random
 
-import numpy as np
-import PIL
 from skimage.transform import rotate
+from src.datasets.augmentation.utils import is_numpy_clip, is_pil_clip
 
 
 class RandomRotation:
-    """Rotate entire clip randomly by a random angle within
-    given bounds
+    """Rotate entire clip randomly by a random angle within given bounds.
     Args:
-    degrees (sequence or int): Range of degrees to select from
-    If degrees is a number instead of sequence like (min, max),
-    the range of degrees, will be (-degrees, +degrees).
+        degrees (sequence or int): Range of degrees to select from
+                                   If degrees is a number instead of sequence like (min, max),
+                                   the range of degrees, will be (-degrees, +degrees).
     """
 
-    def __init__(self, degrees):
+    def __init__(self, degrees) -> None:
         if isinstance(degrees, int):
             if degrees < 0:
                 raise ValueError("If degrees is a single number," "must be positive")
@@ -28,15 +26,14 @@ class RandomRotation:
     def __call__(self, clip):
         """
         Args:
-        img (PIL.Image or numpy.ndarray): List of videos to be cropped
-        in format (h, w, c) in numpy.ndarray
+            clip (PIL.Image or numpy.ndarray): List of videos to be cropped in format (h, w, c) in numpy.ndarray
         Returns:
-        PIL.Image or numpy.ndarray: Cropped list of videos
+            PIL.Image or numpy.ndarray: Cropped list of videos
         """
         angle = random.uniform(self.degrees[0], self.degrees[1])
-        if isinstance(clip[0], np.ndarray):
+        if is_numpy_clip(clip):
             rotated = [rotate(image=img, angle=angle, preserve_range=True) for img in clip]
-        elif isinstance(clip[0], PIL.Image.Image):
+        elif is_pil_clip(clip):
             rotated = [img.rotate(angle) for img in clip]
         else:
             raise TypeError("Expected numpy.ndarray or PIL.Image" + "but got list of {0}".format(type(clip[0])))

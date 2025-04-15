@@ -14,7 +14,6 @@ def read_video(name, frame_shape):
       - '.mp4' and'.gif'
       - folder with videos
     """
-
     if os.path.isdir(name):
         frames = sorted(os.listdir(name))
         num_frames = len(frames)

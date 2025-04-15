@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 class PairedDataset(Dataset):
     """Dataset of pairs for services."""
 
-    def __init__(self, initial_dataset, number_of_pairs, seed=0):
+    def __init__(self, initial_dataset, number_of_pairs, seed=0) -> None:
         self.initial_dataset = initial_dataset
         pairs_list = self.initial_dataset.pairs_list
 
@@ -30,10 +30,10 @@ class PairedDataset(Dataset):
             for ind in range(number_of_pairs):
                 self.pairs.append((name_to_index[pairs["driving"].iloc[ind]], name_to_index[pairs["source"].iloc[ind]]))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.pairs)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         pair = self.pairs[idx]
         first = self.initial_dataset[pair[0]]
         second = self.initial_dataset[pair[1]]

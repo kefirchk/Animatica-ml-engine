@@ -1,17 +1,20 @@
 import random
 
-import numpy as np
-import PIL
-from src.datasets.augmentation.utils import crop_clip, pad_clip
+from src.datasets.augmentation.utils import (
+    crop_clip,
+    is_numpy_clip,
+    is_pil_clip,
+    pad_clip,
+)
 
 
 class RandomCrop:
-    """Extract random crop at the same location for a list of videos
+    """Extract random crop at the same location for a list of videos.
     Args:
         size (sequence or int): Desired output size for the crop in format (h, w)
     """
 
-    def __init__(self, size: int | tuple):
+    def __init__(self, size: int | tuple[int, int]) -> None:
         self.size = (size, size) if isinstance(size, int) else size
 
     def __call__(self, clip):
@@ -22,9 +25,9 @@ class RandomCrop:
             PIL.Image or numpy.ndarray: Cropped list of videos
         """
         h, w = self.size
-        if isinstance(clip[0], np.ndarray):
+        if is_numpy_clip(clip):
             im_h, im_w, im_c = clip[0].shape
-        elif isinstance(clip[0], PIL.Image.Image):
+        elif is_pil_clip(clip):
             im_w, im_h = clip[0].size
         else:
             raise TypeError("Expected numpy.ndarray or PIL.Image" + "but got list of {0}".format(type(clip[0])))
