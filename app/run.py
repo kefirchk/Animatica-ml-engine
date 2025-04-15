@@ -7,11 +7,11 @@ from time import gmtime, strftime
 import matplotlib
 import torch
 import yaml
-from datasets.frames_dataset import FramesDataset
-from modules.discriminator import MultiScaleDiscriminator
-from modules.generator import OcclusionAwareGenerator
-from modules.keypoint_detector import KPDetector
-from services import (
+from src.datasets.frames_dataset import FramesDataset
+from src.modules import MultiScaleDiscriminator
+from src.modules.generator import OcclusionAwareGenerator
+from src.modules.keypoint_detector import KPDetector
+from src.services import (
     AnimationService,
     LoggingService,
     MetricsService,

@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from modules.util import AntiAliasInterpolation2d, make_coordinate_grid
+from src.modules.util import AntiAliasInterpolation2d, make_coordinate_grid
 from torch import nn
 from torch.autograd import grad
 from torchvision import models

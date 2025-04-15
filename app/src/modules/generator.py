@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
-from modules.dense_motion import DenseMotionNetwork
-from modules.util import DownBlock2d, ResBlock2d, SameBlock2d, UpBlock2d
+from src.modules.dense_motion import DenseMotionNetwork
+from src.modules.util import DownBlock2d, ResBlock2d, SameBlock2d, UpBlock2d
 from torch import nn
 
 

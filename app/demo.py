@@ -4,16 +4,13 @@ from argparse import ArgumentParser
 import imageio
 import matplotlib
 import numpy as np
-import torch
-import yaml
-from modules.generator import OcclusionAwareGenerator
-from modules.keypoint_detector import KPDetector
 from scipy.spatial import ConvexHull
-from services import AnimationService, LoggingService
-from skimage import img_as_ubyte
 from skimage.transform import resize
+from skimage.util import img_as_ubyte
+from src.services.animation import AnimationService
+from src.services.logging import LoggingService
+from src.services.model import ModelService
 from tqdm import tqdm
-from utils.sync_batchnorm import DataParallelWithCallback
 
 if sys.version_info[0] < 3:
     raise Exception("You must use Python 3 or higher. Recommended version is Python 3.7")
@@ -21,36 +18,36 @@ if sys.version_info[0] < 3:
 matplotlib.use("Agg")
 
 
-def load_checkpoints(config_path, checkpoint_path, cpu=False):
-    with open(config_path) as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
-
-    generator = OcclusionAwareGenerator(
-        **config["model_params"]["generator_params"], **config["model_params"]["common_params"]
-    )
-    if not cpu:
-        generator.cuda()
-
-    kp_detector = KPDetector(**config["model_params"]["kp_detector_params"], **config["model_params"]["common_params"])
-    if not cpu:
-        kp_detector.cuda()
-
-    if cpu:
-        checkpoint = torch.load(checkpoint_path, map_location=torch.device("cpu"))
-    else:
-        checkpoint = torch.load(checkpoint_path)
-
-    generator.load_state_dict(checkpoint["generator"])
-    kp_detector.load_state_dict(checkpoint["kp_detector"])
-
-    if not cpu:
-        generator = DataParallelWithCallback(generator)
-        kp_detector = DataParallelWithCallback(kp_detector)
-
-    generator.eval()
-    kp_detector.eval()
-
-    return generator, kp_detector
+# def load_checkpoints(config_path, checkpoint_path, cpu=False):
+#     with open(config_path) as f:
+#         config = yaml.load(f, Loader=yaml.FullLoader)
+#
+#     generator = OcclusionAwareGenerator(
+#         **config["model_params"]["generator_params"], **config["model_params"]["common_params"]
+#     )
+#     if not cpu:
+#         generator.cuda()
+#
+#     kp_detector = KPDetector(**config["model_params"]["kp_detector_params"], **config["model_params"]["common_params"])
+#     if not cpu:
+#         kp_detector.cuda()
+#
+#     if cpu:
+#         checkpoint = torch.load(checkpoint_path, map_location=torch.device("cpu"))
+#     else:
+#         checkpoint = torch.load(checkpoint_path)
+#
+#     generator.load_state_dict(checkpoint["generator"])
+#     kp_detector.load_state_dict(checkpoint["kp_detector"])
+#
+#     if not cpu:
+#         generator = DataParallelWithCallback(generator)
+#         kp_detector = DataParallelWithCallback(kp_detector)
+#
+#     generator.eval()
+#     kp_detector.eval()
+#
+#     return generator, kp_detector
 
 
 def find_best_frame(source, driving, cpu=False):
@@ -123,7 +120,9 @@ if __name__ == "__main__":
 
     source_image = resize(source_image, (256, 256))[..., :3]
     driving_video = [resize(frame, (256, 256))[..., :3] for frame in driving_video]
-    generator, kp_detector = load_checkpoints(config_path=opt.config, checkpoint_path=opt.checkpoint, cpu=opt.cpu)
+    model_service = ModelService(config_path=opt.config, checkpoint_path=opt.checkpoint, cpu=opt.cpu)
+    generator, kp_detector = model_service.load_eval_models()
+    # generator, kp_detector = load_checkpoints(config_path=opt.config, checkpoint_path=opt.checkpoint, cpu=opt.cpu)
 
     if opt.find_best_frame or opt.best_frame:
         i = opt.best_frame if opt.best_frame else find_best_frame(source_image, driving_video, cpu=opt.cpu)

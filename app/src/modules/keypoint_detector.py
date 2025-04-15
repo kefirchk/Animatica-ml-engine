@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from modules.util import (
+from src.modules.util import (
     AntiAliasInterpolation2d,
     Hourglass,
     make_coordinate_grid,

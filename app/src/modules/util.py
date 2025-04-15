@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
+from src.services.sync_batchnorm import SynchronizedBatchNorm2d as BatchNorm2d
 from torch import nn
-from utils.sync_batchnorm import SynchronizedBatchNorm2d as BatchNorm2d
 
 
 def kp2gaussian(kp, spatial_size, kp_variance):

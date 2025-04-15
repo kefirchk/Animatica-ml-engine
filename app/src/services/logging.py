@@ -6,7 +6,7 @@ import sys
 import imageio
 import numpy as np
 import torch
-from services.visualization import VisualizationService
+from src.services.visualization import VisualizationService
 
 
 class LoggingService:

@@ -1,7 +1,6 @@
 import argparse
 import csv
 import datetime
-import logging
 import os
 import sys
 import time
@@ -12,9 +11,9 @@ import numpy as np
 import psutil
 import torch
 from demo import load_checkpoints
-from services import AnimationService, LoggingService
 from skimage import img_as_ubyte
 from skimage.transform import resize
+from src.services import AnimationService, LoggingService
 
 if sys.version_info[0] < 3:
     raise Exception("You must use Python 3 or higher. Recommended version is Python 3.7")

@@ -1,11 +1,11 @@
 import torch
-from datasets.frames_dataset import DatasetRepeater
-from modules.model import DiscriminatorFullModel, GeneratorFullModel
-from services import LoggingService
+from src.datasets.frames_dataset import DatasetRepeater
+from src.modules.model import DiscriminatorFullModel, GeneratorFullModel
+from src.services import LoggingService
+from src.services.sync_batchnorm import DataParallelWithCallback
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 from tqdm import trange
-from utils.sync_batchnorm import DataParallelWithCallback
 
 
 class TrainingService:

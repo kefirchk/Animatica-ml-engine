@@ -3,10 +3,10 @@ import os
 import imageio
 import numpy as np
 import torch
-from services import LoggingService, VisualizationService
+from src.services import LoggingService, VisualizationService
+from src.services.sync_batchnorm import DataParallelWithCallback
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utils.sync_batchnorm import DataParallelWithCallback
 
 log = LoggingService.setup_logger(__name__)
 

@@ -2,12 +2,13 @@ import os
 
 import numpy as np
 import torch
-from datasets.frames_dataset import PairedDataset
 from scipy.spatial import ConvexHull
-from services import LoggingService, VisualizationService
+from src.datasets.frames_dataset import PairedDataset
+from src.services.logging import LoggingService
+from src.services.sync_batchnorm import DataParallelWithCallback
+from src.services.visualization import VisualizationService
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from utils.sync_batchnorm import DataParallelWithCallback
 
 
 class AnimationService:
