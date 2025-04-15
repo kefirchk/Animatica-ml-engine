@@ -122,7 +122,6 @@ if __name__ == "__main__":
     driving_video = [resize(frame, (256, 256))[..., :3] for frame in driving_video]
     model_service = ModelService(config_path=opt.config, checkpoint_path=opt.checkpoint, cpu=opt.cpu)
     generator, kp_detector = model_service.load_eval_models()
-    # generator, kp_detector = load_checkpoints(config_path=opt.config, checkpoint_path=opt.checkpoint, cpu=opt.cpu)
 
     if opt.find_best_frame or opt.best_frame:
         i = opt.best_frame if opt.best_frame else find_best_frame(source_image, driving_video, cpu=opt.cpu)
