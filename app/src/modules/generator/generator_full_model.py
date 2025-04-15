@@ -1,8 +1,6 @@
 import torch
 from src.modules.generator.vgg19 import Vgg19
-from src.modules.utils.image_pyramide import ImagePyramide
-from src.modules.utils.transform import Transform
-from src.modules.utils.utils import detach_kp
+from src.modules.utils import ImagePyramide, Transform, detach_kp
 from torch import nn
 
 

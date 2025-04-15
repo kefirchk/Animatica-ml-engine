@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from src.modules.blocks import AntiAliasInterpolation2d, Hourglass
-from src.modules.utils.utils import gaussian2kp, make_coordinate_grid
+from src.modules.utils import gaussian2kp
 from torch import nn
 
 

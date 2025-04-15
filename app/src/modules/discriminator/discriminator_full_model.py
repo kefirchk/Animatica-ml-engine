@@ -1,6 +1,5 @@
 import torch
-from src.modules.utils.image_pyramide import ImagePyramide
-from src.modules.utils.utils import detach_kp
+from src.modules.utils import ImagePyramide, detach_kp
 from torch import nn
 
 

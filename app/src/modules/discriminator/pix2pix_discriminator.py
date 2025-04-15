@@ -1,6 +1,6 @@
 import torch
 from src.modules.discriminator.blocks import DownBlock2d
-from src.modules.utils.utils import kp2gaussian
+from src.modules.utils import kp2gaussian
 from torch import nn
 
 

@@ -1,26 +1,15 @@
 import torch
 
 
-def kp2gaussian(kp, spatial_size, kp_variance):
-    """Transform a keypoint into gaussian like representation."""
+def kp2gaussian(kp: dict, spatial_size: tuple[int, int], kp_variance: float) -> torch.Tensor:
+    """Converts keypoints to Gaussian heatmaps with optimized tensor operations."""
     mean = kp["value"]
+    coordinate_grid = make_coordinate_grid(spatial_size, mean.type()).view(1, 1, *spatial_size, 2)
 
-    coordinate_grid = make_coordinate_grid(spatial_size, mean.type())
-    number_of_leading_dimensions = len(mean.shape) - 1
-    shape = (1,) * number_of_leading_dimensions + coordinate_grid.shape
-    coordinate_grid = coordinate_grid.view(*shape)
-    repeats = mean.shape[:number_of_leading_dimensions] + (1, 1, 1)
-    coordinate_grid = coordinate_grid.repeat(*repeats)
-
-    # Preprocess kp shape
-    shape = mean.shape[:number_of_leading_dimensions] + (1, 1, 2)
-    mean = mean.view(*shape)
-
-    mean_sub = coordinate_grid - mean
-
-    out = torch.exp(-0.5 * (mean_sub**2).sum(-1) / kp_variance)
-
-    return out
+    # Expand dimensions for broadcasting
+    mean = mean.view(*mean.shape[:2], 1, 1, 2)
+    diff = coordinate_grid - mean
+    return torch.exp(-0.5 * (diff.pow(2).sum(-1) / kp_variance))
 
 
 def gaussian2kp(heatmap):
@@ -37,8 +26,8 @@ def detach_kp(kp):
     return {key: value.detach() for key, value in kp.items()}
 
 
-def make_coordinate_grid(spatial_size, type):
-    """Create a meshgrid [-1,1] x [-1,1] of given spatial_size."""
+def make_coordinate_grid(spatial_size: tuple[int, int], type) -> torch.Tensor:
+    """Creates normalized grid coordinates with modern PyTorch features."""
     h, w = spatial_size
     x = torch.arange(w).type(type)
     y = torch.arange(h).type(type)
