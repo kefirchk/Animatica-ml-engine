@@ -79,8 +79,6 @@ class VideoAnimationService:
             source_image = preprocess_image(self.source_image_path)
             driving_video, fps = load_video(self.driving_video_path)
 
-            print("type driving video:", type(driving_video))
-
             # Generate animations
             predictions = self._generate_animations(source_image, driving_video)
 
