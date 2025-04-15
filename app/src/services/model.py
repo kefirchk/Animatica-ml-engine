@@ -24,35 +24,71 @@ class ModelService:
         self.log_dir = log_dir
         self.cpu = cpu
         self.verbose = verbose
-        # self.config = self._load_config()
-        # self.log_dir = self._prepare_log_dir()
+        self.config = self._load_config()
+        self.log_dir = self._prepare_log_dir()
         self.device = torch.device("cpu" if cpu else "cuda:0")
 
-    def load_checkpoints(self, config_path, checkpoint_path, cpu=False):
-        with open(config_path) as f:
-            config = yaml.load(f, Loader=yaml.FullLoader)
+    def _load_config(self):
+        with open(self.config_path) as f:
+            return yaml.safe_load(f)
 
+    def _prepare_log_dir(self):
+        if self.checkpoint_path:
+            return os.path.join(*os.path.split(self.checkpoint_path)[:-1])
+        else:
+            log_dir = os.path.join(self.log_dir, os.path.basename(self.config_path).split(".")[0])
+            log_dir += " " + strftime("%d_%m_%y_%H.%M.%S", gmtime())
+            os.makedirs(log_dir, exist_ok=True)
+
+            config_copy_path = os.path.join(log_dir, os.path.basename(self.config_path))
+            if not os.path.exists(config_copy_path):
+                copy(self.config_path, config_copy_path)
+
+            return log_dir
+
+    def init_training_models(self, device_ids: list) -> tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module]:
         generator = OcclusionAwareGenerator(
-            **config["model_params"]["generator_params"], **config["model_params"]["common_params"]
+            **self.config["model_params"]["generator_params"], **self.config["model_params"]["common_params"]
         )
-        if not cpu:
-            generator.cuda()
+        discriminator = MultiScaleDiscriminator(
+            **self.config["model_params"]["discriminator_params"], **self.config["model_params"]["common_params"]
+        )
+        kp_detector = KPDetector(
+            **self.config["model_params"]["kp_detector_params"], **self.config["model_params"]["common_params"]
+        )
+
+        if torch.cuda.is_available() and not self.cpu:
+            generator.to(device_ids[0])
+            discriminator.to(device_ids[0])
+            kp_detector.to(device_ids[0])
+
+        if self.verbose:
+            print(generator)
+            print(discriminator)
+            print(kp_detector)
+
+        return generator, discriminator, kp_detector
+
+    def load_eval_models(self):
+        generator = OcclusionAwareGenerator(
+            **self.config["model_params"]["generator_params"],
+            **self.config["model_params"]["common_params"],
+        )
 
         kp_detector = KPDetector(
-            **config["model_params"]["kp_detector_params"], **config["model_params"]["common_params"]
+            **self.config["model_params"]["kp_detector_params"],
+            **self.config["model_params"]["common_params"],
         )
-        if not cpu:
+
+        if not self.cpu:
+            generator.cuda()
             kp_detector.cuda()
 
-        if cpu:
-            checkpoint = torch.load(checkpoint_path, map_location=torch.device("cpu"))
-        else:
-            checkpoint = torch.load(checkpoint_path)
-
+        checkpoint = torch.load(self.checkpoint_path, map_location=self.device)
         generator.load_state_dict(checkpoint["generator"])
         kp_detector.load_state_dict(checkpoint["kp_detector"])
 
-        if not cpu:
+        if not self.cpu:
             generator = DataParallelWithCallback(generator)
             kp_detector = DataParallelWithCallback(kp_detector)
 

@@ -3,15 +3,16 @@ import os
 import imageio
 import numpy as np
 import torch
-from src.services import LoggingService, VisualizationService
+from src.services.logging import LoggingService
 from src.services.sync_batchnorm import DataParallelWithCallback
+from src.services.visualization import VisualizationService
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 log = LoggingService.setup_logger(__name__)
 
 
-class MetricsService:
+class ReconstructionService:
     @staticmethod
     def reconstruction(config, generator, kp_detector, checkpoint, log_dir, dataset):
         png_dir = os.path.join(log_dir, "reconstruction/png")
