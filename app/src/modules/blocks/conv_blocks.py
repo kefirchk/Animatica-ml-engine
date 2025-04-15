@@ -53,7 +53,12 @@ class SameBlock2d(nn.Module):
     """Simple block, preserve spatial resolution."""
 
     def __init__(
-        self, in_features: int, out_features: int, groups: int = 1, kernel_size: int = 3, padding: int = 1
+        self,
+        in_features: int,
+        out_features: int,
+        groups: int = 1,
+        kernel_size: int | tuple[int, int] = 3,
+        padding: int | tuple[int, int] = 1,
     ) -> None:
         super().__init__()
         self.conv = nn.Conv2d(in_features, out_features, kernel_size, padding=padding, groups=groups)

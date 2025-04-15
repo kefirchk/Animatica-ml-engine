@@ -1,1 +1,2 @@
+from .generator_full_model import GeneratorFullModel
 from .occlusion_aware_generator import OcclusionAwareGenerator

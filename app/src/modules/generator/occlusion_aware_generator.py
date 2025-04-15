@@ -7,24 +7,25 @@ from torch import nn
 
 class OcclusionAwareGenerator(nn.Module):
     """
-    Generator that given source image and keypoints try to transform image according to movement trajectories
-    induced by keypoints. Generator follows Johnson architecture.
+    Generator that transforms source image according to movement trajectories induced by keypoints.
+    Follows the Johnson architecture.
     """
 
     def __init__(
         self,
         num_channels: int,
-        num_kp,
-        block_expansion,
+        num_kp: int,
+        block_expansion: int,
         max_features: int,
-        num_down_blocks,
-        num_bottleneck_blocks,
+        num_down_blocks: int,
+        num_bottleneck_blocks: int,
         estimate_occlusion_map: bool = False,
-        dense_motion_params=None,
+        dense_motion_params: dict = None,
         estimate_jacobian: bool = False,
     ) -> None:
-        super(OcclusionAwareGenerator, self).__init__()
+        super().__init__()
 
+        # Dense Motion Network setup
         self.dense_motion_network = (
             DenseMotionNetwork(
                 num_kp=num_kp,
@@ -36,28 +37,40 @@ class OcclusionAwareGenerator(nn.Module):
             else None
         )
 
+        # First block: SameBlock2d
         self.first = SameBlock2d(num_channels, block_expansion, kernel_size=(7, 7), padding=(3, 3))
 
-        down_blocks = []
-        for i in range(num_down_blocks):
-            in_features = min(max_features, block_expansion * (2**i))
-            out_features = min(max_features, block_expansion * (2 ** (i + 1)))
-            down_blocks.append(DownBlock2d(in_features, out_features, kernel_size=(3, 3), padding=(1, 1)))
-        self.down_blocks = nn.ModuleList(down_blocks)
+        # Downsampling blocks
+        self.down_blocks = nn.ModuleList(
+            [
+                DownBlock2d(
+                    min(max_features, block_expansion * (2**i)), min(max_features, block_expansion * (2 ** (i + 1)))
+                )
+                for i in range(num_down_blocks)
+            ]
+        )
 
-        up_blocks = []
-        for i in range(num_down_blocks):
-            in_features = min(max_features, block_expansion * (2 ** (num_down_blocks - i)))
-            out_features = min(max_features, block_expansion * (2 ** (num_down_blocks - i - 1)))
-            up_blocks.append(UpBlock2d(in_features, out_features, kernel_size=(3, 3), padding=(1, 1)))
-        self.up_blocks = nn.ModuleList(up_blocks)
+        # Upsampling blocks
+        self.up_blocks = nn.ModuleList(
+            [
+                UpBlock2d(
+                    min(max_features, block_expansion * (2 ** (num_down_blocks - i))),
+                    min(max_features, block_expansion * (2 ** (num_down_blocks - i - 1))),
+                )
+                for i in range(num_down_blocks)
+            ]
+        )
 
+        # Bottleneck ResBlocks
         self.bottleneck = torch.nn.Sequential()
         in_features = min(max_features, block_expansion * (2**num_down_blocks))
         for i in range(num_bottleneck_blocks):
             self.bottleneck.add_module("r" + str(i), ResBlock2d(in_features, kernel_size=(3, 3), padding=(1, 1)))
 
+        # Final output layer
         self.final = nn.Conv2d(block_expansion, num_channels, kernel_size=(7, 7), padding=(3, 3))
+
+        # Store options for occlusion map and channels
         self.estimate_occlusion_map = estimate_occlusion_map
         self.num_channels = num_channels
 
@@ -77,14 +90,19 @@ class OcclusionAwareGenerator(nn.Module):
         for i in range(len(self.down_blocks)):
             out = self.down_blocks[i](out)
 
-        # Transforming feature representation according to deformation and occlusion
         output_dict = {}
+
+        # Transforming feature representation according to deformation and occlusion
         if self.dense_motion_network:
             dense_motion = self.dense_motion_network(
                 source_image=source_image, kp_driving=kp_driving, kp_source=kp_source
             )
-            output_dict["mask"] = dense_motion["mask"]
-            output_dict["sparse_deformed"] = dense_motion["sparse_deformed"]
+            output_dict.update(
+                {
+                    "mask": dense_motion["mask"],
+                    "sparse_deformed": dense_motion["sparse_deformed"],
+                }
+            )
 
             if "occlusion_map" in dense_motion:
                 occlusion_map = dense_motion["occlusion_map"]
@@ -95,7 +113,7 @@ class OcclusionAwareGenerator(nn.Module):
             out = self.deform_input(out, deformation)
 
             if occlusion_map is not None:
-                if out.shape[2] != occlusion_map.shape[2] or out.shape[3] != occlusion_map.shape[3]:
+                if out.shape[2:] != occlusion_map.shape[2:]:
                     occlusion_map = F.interpolate(occlusion_map, size=out.shape[2:], mode="bilinear")
                 out = out * occlusion_map
 
@@ -103,8 +121,10 @@ class OcclusionAwareGenerator(nn.Module):
 
         # Decoding part
         out = self.bottleneck(out)
-        for i in range(len(self.up_blocks)):
-            out = self.up_blocks[i](out)
+        for up_block in self.up_blocks:
+            out = up_block(out)
+
+        # Final prediction and sigmoid activation
         out = self.final(out)
         out = F.sigmoid(out)
 
