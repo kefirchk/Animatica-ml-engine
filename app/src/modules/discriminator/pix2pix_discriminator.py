@@ -5,7 +5,7 @@ from torch import nn
 
 
 class Discriminator(nn.Module):
-    """Discriminator similar to Pix2Pix."""
+    """Patch-based discriminator similar to Pix2Pix, with optional keypoint heatmap input."""
 
     def __init__(
         self,
@@ -20,13 +20,17 @@ class Discriminator(nn.Module):
         **_
     ) -> None:
         super().__init__()
+        self.use_kp = use_kp
+        self.kp_variance = kp_variance
 
-        down_blocks = []
+        self.down_blocks = nn.ModuleList()
         for i in range(num_blocks):
-            down_blocks.append(
+            self.down_blocks.append(
                 DownBlock2d(
-                    num_channels + num_kp * use_kp if i == 0 else min(max_features, block_expansion * (2**i)),
-                    min(max_features, block_expansion * (2 ** (i + 1))),
+                    in_features=(
+                        num_channels + num_kp * use_kp if i == 0 else min(max_features, block_expansion * (2**i))
+                    ),
+                    out_features=min(max_features, block_expansion * (2 ** (i + 1))),
                     norm=(i != 0),
                     kernel_size=4,
                     pool=(i != num_blocks - 1),
@@ -34,22 +38,25 @@ class Discriminator(nn.Module):
                 )
             )
 
-        self.down_blocks = nn.ModuleList(down_blocks)
-        self.conv = nn.Conv2d(self.down_blocks[-1].conv.out_channels, out_channels=1, kernel_size=1)
-        self.conv = nn.utils.spectral_norm(self.conv) if sn else self.conv
-        self.use_kp = use_kp
-        self.kp_variance = kp_variance
+        conv = nn.Conv2d(self.down_blocks[-1].conv.out_channels, out_channels=1, kernel_size=1)
+        self.conv = nn.utils.spectral_norm(conv) if sn else conv
 
-    def forward(self, x, kp=None):
-        feature_maps = []
-        out = x
+    def forward(self, x: torch.Tensor, kp: dict | None = None) -> tuple[list[torch.Tensor], torch.Tensor]:
+        """
+        Forward pass.
+        Returns:
+            - List of intermediate feature maps (for multiscale loss).
+            - Final prediction map.
+        """
         if self.use_kp:
             heatmap = kp2gaussian(kp, x.shape[2:], self.kp_variance)
-            out = torch.cat([out, heatmap], dim=1)
+            x = torch.cat([x, heatmap], dim=1)
 
+        feature_maps = []
         for down_block in self.down_blocks:
-            feature_maps.append(down_block(out))
-            out = feature_maps[-1]
-        prediction_map = self.conv(out)
+            x = down_block(x)
+            feature_maps.append(x)
+
+        prediction_map = self.conv(x)
 
         return feature_maps, prediction_map

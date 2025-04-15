@@ -1,38 +1,45 @@
 import torch
 from src.modules.utils.image_pyramide import ImagePyramide
 from src.modules.utils.utils import detach_kp
+from torch import nn
 
 
 class DiscriminatorFullModel(torch.nn.Module):
-    """Merge all discriminator related updates into single model for better multi-gpu usage."""
+    """Wraps the discriminator forward pass and GAN loss calculation for improved multi-GPU usage."""
 
-    def __init__(self, kp_extractor, generator, discriminator, train_params):
-        super(DiscriminatorFullModel, self).__init__()
+    def __init__(self, kp_extractor, generator: nn.Module, discriminator: nn.Module, train_params: dict) -> None:
+        super().__init__()
         self.kp_extractor = kp_extractor
         self.generator = generator
         self.discriminator = discriminator
         self.train_params = train_params
+
         self.scales = self.discriminator.scales
+        self.loss_weights = train_params["loss_weights"]
+
         self.pyramid = ImagePyramide(self.scales, generator.num_channels)
         if torch.cuda.is_available():
             self.pyramid = self.pyramid.cuda()
 
-        self.loss_weights = train_params["loss_weights"]
-
-    def forward(self, x, generated):
+    def forward(self, x: dict, generated: dict) -> dict[str, float]:
+        # Extract pyramids for real and generated frames
         pyramide_real = self.pyramid(x["driving"])
-        pyramide_generated = self.pyramid(generated["prediction"].detach())
+        pyramide_fake = self.pyramid(generated["prediction"].detach())
 
-        kp_driving = generated["kp_driving"]
-        discriminator_maps_generated = self.discriminator(pyramide_generated, kp=detach_kp(kp_driving))
-        discriminator_maps_real = self.discriminator(pyramide_real, kp=detach_kp(kp_driving))
+        # Detach keypoints to stop gradient to generator
+        kp_driving_detached = detach_kp(generated["kp_driving"])
 
-        loss_values = {}
-        value_total = 0
+        # Run discriminator
+        disc_fake = self.discriminator(pyramide_fake, kp=kp_driving_detached)
+        disc_real = self.discriminator(pyramide_real, kp=kp_driving_detached)
+
+        # Compute GAN loss (LSGAN formulation)
+        disc_loss_total = 0.0
         for scale in self.scales:
-            key = "prediction_map_%s" % scale
-            value = (1 - discriminator_maps_real[key]) ** 2 + discriminator_maps_generated[key] ** 2
-            value_total += self.loss_weights["discriminator_gan"] * value.mean()
-        loss_values["disc_gan"] = value_total
+            key = f"prediction_map_{scale}"
+            real_map = disc_real[key]
+            fake_map = disc_fake[key]
+            scale_loss = (1 - real_map) ** 2 + fake_map**2
+            disc_loss_total += self.loss_weights["discriminator_gan"] * scale_loss.mean()
 
-        return loss_values
+        return {"disc_gan": disc_loss_total}
