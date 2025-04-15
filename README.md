@@ -1,5 +1,6 @@
 # Animatica-ml-engine
-Animatica is my diploma project that generates videos from images using neural networks. It automates animation creation with image generation, image-to-video conversion, and post-processing.
+Animatica is my diploma project that generates image animation from videos in real time or not using neural networks (FOMM).
+It automates animation creation with image generation, image-to-video conversion, and post-processing.
 
 ## Deploying on Local
 
@@ -45,69 +46,26 @@ rm checkpoints.zip
 
 ###### *Windows:*
 
-Unzip ***checkpoints.zip*** using unzipping software like *7zip*.
+Unzip __checkpoints.zip__ using unzipping software like __7zip__.
 
 ### Step 4
 
-Run the project:
+__Use cases:__
 
-1. Run application from live camera:
+1. Run the project from __Jupyter Notebook__ named __test.ipynb__.
+2. Run the project using __CLI__ (Command Line Interface).
+   
+   __Examples:__
 
-    ```python .\animate_in_real_time.py -i path_to_input_file -c path_to_checkpoint```
-
-    Example:
-
-    ```python .\animate_in_real_time.py -i .\data\input\monalisa.png -c .\data\checkpoints\vox-cpk.pth.tar```
-
-2. Run application from video file:
-
-    ```python .\animate_in_real_time.py -i path_to_input_file -c path_to_checkpoint -v path_to_video_file```
-
-   Example:
-
-    ```python .\animate_in_real_time.py -i .\data\input\monalisa.png -c .\checkpoints\vox-cpk.pth.tar -v .\data\input\test.mp4 ```
-
-## ~~Deploying via Docker~~
-
-DOES NOT WORK!
-
-### ~~Step 1~~
-
-```bash
-docker build -t animatica-ml-engine .
-```
-
-### ~~Step 2~~
-
-~~Run container.~~
-
-###### ~~With CUDA:~~
-```bash
-docker run --rm -it --device=/dev/video0:/dev/video0 \
-       	--env DISPLAY=$DISPLAY \
-        --env="QT_X11_NO_MITSHM=1" \
-        -v /dev/video0:/dev/video0 \
-        -v /tmp/.X11-unix:/tmp/.X11-unix:ro  \
-        --gpus all -v "${PWD}:/app" \
-       	-p 8888:8888 -p 6006:6006 \
-        --name first-order-model \
-	    first-order-model jupyter notebook --no-browser --port 8888 --ip=* --allow-root
-
-```
-
-###### ~~Without CUDA:~~
-```bash
-docker run --rm -it --device=/dev/video0:/dev/video0 \
-       	--env DISPLAY=$DISPLAY \
-        --env="QT_X11_NO_MITSHM=1" \
-        -v /dev/video0:/dev/video0 \
-        -v /tmp/.X11-unix:/tmp/.X11-unix:ro  \
-        -v "${PWD}:/app" \
-       	-p 8888:8888 -p 6006:6006 \
-        --name first-order-model \
-	    first-order-model jupyter notebook --no-browser --port 8888 --ip=* --allow-root
-
-```
+   ```bash
+   python main.py --mode train --configs config.yaml
+   ```
+   ```bash
+   python main.py --mode reconstruction --configs config.yaml --checkpoint path/to/ckpt
+   ```
+   ```bash
+   python main.py --mode animate --configs config.yaml --checkpoint path/to/ckpt
+   ```
 
 ## Demo
 
@@ -116,5 +74,4 @@ docker run --rm -it --device=/dev/video0:/dev/video0 \
 ## TODO
 - [x] Add pre-commit.
 - [ ] Add GitHub Actions.
-- [ ] Add Docker.
 - [ ] Optimize and refactor the code.
