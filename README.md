@@ -139,6 +139,9 @@ After, you can use the following endpoints:
 
 You can use __Docker-compose__ with [Animatica-backend](https://github.com/kefirchk/Animatica-backend).
 
+My ready-made image:
+[kefirchk/animatica-ml-engine:latest](https://hub.docker.com/r/kefirchk/animatica-ml-engine)
+
 ## Demo
 
 ![test demo](docs/demo.gif)
