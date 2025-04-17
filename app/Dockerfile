@@ -1,7 +1,10 @@
 FROM python:3.12-slim
 
-ENV PYTHONUNBUFFERED=1
-ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    ML_ENGINE_KEY=your-secret-key \
+    API_MODE=local \
+    LOG_LEVEL=info
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \

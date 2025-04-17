@@ -8,7 +8,7 @@ from src.server.exceptions import MLModelException
 api_config = APIConfig()
 
 
-async def validate_api_key(api_key: str = Security(APIKeyHeader(name="X-API-Key", auto_error=False))):
-    if api_key != api_config.ML_MODEL_API_KEY:
-        raise MLModelException("Invalid API Key")
-    return api_key
+async def validate_api_key(ml_engine_key: str = Security(APIKeyHeader(name="X-ML-Engine-Key", auto_error=False))):
+    if ml_engine_key != api_config.ML_ENGINE_KEY:
+        raise MLModelException("Invalid ML Engine Key")
+    return ml_engine_key
