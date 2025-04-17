@@ -4,9 +4,9 @@ It automates animation creation with image generation, image-to-video conversion
 
 ## Deploying on Local
 
-### Step 1
+### Setting up the environment
 
-Create a virtual environment.
+#### Step 1: Create a virtual environment
 
 ###### *Linux/macOS:*
 
@@ -22,16 +22,25 @@ python -m venv venv
 source venv/Scripts/activate
 ```
 
-### Step 2
+#### Step 2: Install requirements
 
 ```bash
 cd app
 pip install -r requirements.txt
 ```
 
-### Step 3
+#### Step 3: Create env files
 
-Download pretrained models and save them in folder named extract
+```bash
+# env/ml_engine.env
+ML_ENGINE_KEY=your-secret-key
+API_MODE=local
+LOG_LEVEL=debug
+```
+
+#### Step 4: Preparing models
+
+Download pretrained models and save them in folder named __/app/data/checkpoints/__.
 
 Checkpoints can be found under following link: 
 [google-drive](https://drive.google.com/drive/folders/1PyQJmkdCsAkOYwUyaj_l-l0as-iLDgeH)
@@ -48,24 +57,87 @@ rm checkpoints.zip
 
 Unzip __checkpoints.zip__ using unzipping software like __7zip__.
 
-### Step 4
 
-__Use cases:__
+### Test ML Model
+
+#### Step 1: Change directory
+
+Go to **app/src** directory:
+
+```bash
+cd app/src
+```
+
+#### Step 2: Use cases
 
 1. Run the project from __Jupyter Notebook__ named __test.ipynb__.
 2. Run the project using __CLI__ (Command Line Interface).
-   
-   __Examples:__
+
+    __Examples:__
 
    ```bash
-   python main.py --mode train --configs config.yaml
+   python run_model.py --mode train --configs config.yaml
    ```
    ```bash
-   python main.py --mode reconstruction --configs config.yaml --checkpoint path/to/ckpt
+   python run_model.py --mode reconstruction --configs config.yaml --checkpoint path/to/ckpt
    ```
    ```bash
-   python main.py --mode animate --configs config.yaml --checkpoint path/to/ckpt
+   python run_model.py --mode animate --configs config.yaml --checkpoint path/to/ckpt
    ```
+
+### Test Server
+
+#### Step 1: Change directory
+
+Go to **app** directory:
+
+```bash
+cd app
+```
+
+#### Step 2: Run server
+
+```bash
+uvicorn src.run_server:app --host 0.0.0.0 --port 90 --reload 
+```
+
+#### Step 3: Use cases
+
+Available endpoints:
+- http://localhost:90/docs (Swagger docs).
+- http://localhost:90/api/fomm/video (Image animation).
+
+## Deploying via Docker
+
+### Docker container
+
+#### Step 1: Change directory
+
+Go to **app** directory:
+
+```bash
+cd app
+```
+
+#### Step 2: Build Image
+
+```bash
+docker build . --tag animatica-ml-engine
+```
+
+#### Step 3: Run container
+
+```bash
+docker run --name ml-engine -p 9080:90 animatica-ml-engine 
+```
+
+After, you can use the following endpoints:
+- http://localhost:9080/docs (Swagger docs).
+- http://localhost:9080/api/fomm/video (Image animation).
+
+### Docker-compose
+
+You can use __Docker-compose__ with [Animatica-backend](https://github.com/kefirchk/Animatica-backend).
 
 ## Demo
 
@@ -73,5 +145,7 @@ __Use cases:__
 
 ## TODO
 - [x] Add pre-commit.
+- [x] Add Docker.
 - [ ] Add GitHub Actions.
-- [ ] Optimize and refactor the code.
+- [ ] Optimize ML Model for CPU using.
+- [ ] Update the project with async operations.
