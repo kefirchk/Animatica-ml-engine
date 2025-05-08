@@ -12,7 +12,7 @@ class RandomRotation:
                                    the range of degrees, will be (-degrees, +degrees).
     """
 
-    def __init__(self, degrees) -> None:
+    def __init__(self, degrees: int | tuple) -> None:
         if isinstance(degrees, int):
             if degrees < 0:
                 raise ValueError("If degrees is a single number," "must be positive")

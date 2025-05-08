@@ -50,7 +50,7 @@ class ColorJitter:
         return img
 
     @classmethod
-    def apply_color_jitter(cls, clip, brightness, contrast, saturation, hue):
+    def apply_color_jitter(cls, clip, brightness: float, contrast: float, saturation: float, hue: float) -> list:
         brightness, contrast, saturation, hue = ColorJitter.get_params(brightness, contrast, saturation, hue)
         transforms = []
         if brightness:

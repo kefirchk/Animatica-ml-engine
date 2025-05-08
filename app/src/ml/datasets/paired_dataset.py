@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 class PairedDataset(Dataset):
     """Dataset of pairs for services."""
 
-    def __init__(self, initial_dataset, number_of_pairs, seed=0) -> None:
+    def __init__(self, initial_dataset, number_of_pairs: int, seed=0) -> None:
         self.initial_dataset = initial_dataset
         pairs_list = self.initial_dataset.pairs_list
 
