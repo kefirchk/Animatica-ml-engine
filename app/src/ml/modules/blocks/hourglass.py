@@ -1,6 +1,6 @@
 from src.ml.modules.blocks.decoder import Decoder
 from src.ml.modules.blocks.encoder import Encoder
-from torch import nn
+from torch import Tensor, nn
 
 
 class Hourglass(nn.Module):
@@ -12,5 +12,5 @@ class Hourglass(nn.Module):
         self.decoder = Decoder(block_expansion, in_features, num_blocks, max_features)
         self.out_filters = self.decoder.out_filters
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         return self.decoder(self.encoder(x))

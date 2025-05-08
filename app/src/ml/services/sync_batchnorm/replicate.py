@@ -1,24 +1,23 @@
-# This file is part of Synchronized-BatchNorm-PyTorch.
-# https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
-
 import functools
 
+import torch
+import torch.nn as nn
 from torch.nn.parallel.data_parallel import DataParallel
 
 __all__ = ["CallbackContext", "execute_replication_callbacks", "DataParallelWithCallback", "patch_replication_callback"]
 
 
-class CallbackContext(object):
+class CallbackContext:
     pass
 
 
 def execute_replication_callbacks(modules):
     """
-    Execute an replication callback `__data_parallel_replicate__` on each module created by original replication.
+    Execute a replication callback `__data_parallel_replicate__` on each module created by original replication.
 
     The callback will be invoked with arguments `__data_parallel_replicate__(ctx, copy_id)`
 
-    Note that, as all modules are isomorphism, we assign each sub-module with a context
+    Note that, as all modules are isomorphism, we assign each submodule with a context
     (shared among multiple copies of this module on different devices).
     Through this context, different copies can share some information.
 
@@ -39,7 +38,7 @@ class DataParallelWithCallback(DataParallel):
     """
     Data Parallel with a replication callback.
 
-    An replication callback `__data_parallel_replicate__` of each module will be invoked after being created by
+    A replication callback `__data_parallel_replicate__` of each module will be invoked after being created by
     original `replicate` function.
     The callback will be invoked with arguments `__data_parallel_replicate__(ctx, copy_id)`
 
@@ -80,3 +79,13 @@ def patch_replication_callback(data_parallel):
         return modules
 
     data_parallel.replicate = new_replicate
+
+
+def ddp_callback_wrapper(module: nn.Module, rank: int = None):
+    ctxs = {}
+    for idx, m in enumerate(module.modules()):
+        if hasattr(m, "__data_parallel_replicate__") and idx not in ctxs:
+            ctx = CallbackContext()
+            m.__data_parallel_replicate__(ctx, rank if rank is not None else torch.distributed.get_rank())
+            ctxs[idx] = ctx
+    return ctxs

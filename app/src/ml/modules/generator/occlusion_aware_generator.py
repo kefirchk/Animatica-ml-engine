@@ -89,7 +89,7 @@ class OcclusionAwareGenerator(nn.Module):
             deformation = deformation.permute(0, 2, 3, 1)
         return F.grid_sample(inp, deformation, align_corners=True)
 
-    def forward(self, source_image, kp_driving, kp_source):
+    def forward(self, source_image, kp_driving, kp_source) -> dict[str, torch.Tensor]:
         # Encoding (downsampling) part
         out = self.first(source_image)
         for i in range(len(self.down_blocks)):

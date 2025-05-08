@@ -1,6 +1,3 @@
-# This file is part of Synchronized-BatchNorm-PyTorch.
-# https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
-
 from .batchnorm import (
     SynchronizedBatchNorm1d,
     SynchronizedBatchNorm2d,

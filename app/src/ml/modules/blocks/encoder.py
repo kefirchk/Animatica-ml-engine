@@ -5,10 +5,10 @@ from torch import nn
 class Encoder(nn.Module):
     """Hourglass Encoder."""
 
-    def __init__(self, block_expansion: int, in_features: int, num_blocks: int = 3, max_features: int = 256):
+    def __init__(self, block_expansion: int, in_features: int, num_blocks: int = 3, max_features: int = 256) -> None:
         super(Encoder, self).__init__()
 
-        def num_channels(scale):
+        def num_channels(scale) -> int:
             return min(max_features, block_expansion * (2**scale))
 
         self.down_blocks = nn.ModuleList(

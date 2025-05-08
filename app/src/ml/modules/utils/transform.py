@@ -78,7 +78,7 @@ class Transform:
 
         return transformed + result.unsqueeze(-1)
 
-    def jacobian(self, coordinates):
+    def jacobian(self, coordinates: torch.Tensor) -> torch.Tensor:
         new_coordinates = self.warp_coordinates(coordinates)
         grad_x = grad(new_coordinates[..., 0].sum(), coordinates, create_graph=True)
         grad_y = grad(new_coordinates[..., 1].sum(), coordinates, create_graph=True)

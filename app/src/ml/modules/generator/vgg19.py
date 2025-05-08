@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 from torchvision import models
 
@@ -29,7 +28,7 @@ class Vgg19(torch.nn.Module):
             for param in self.parameters():
                 param.requires_grad = False
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> list:
         x = (x - self.mean) / self.std
         features = []
         for slice in self.slices:

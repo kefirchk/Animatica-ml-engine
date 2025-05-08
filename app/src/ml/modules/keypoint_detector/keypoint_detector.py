@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from src.ml.modules.blocks import AntiAliasInterpolation2d, Hourglass
 from src.ml.modules.utils.utils import gaussian2kp
-from torch import nn
+from torch import Tensor, nn
 
 
 class KPDetector(nn.Module):
@@ -51,7 +51,7 @@ class KPDetector(nn.Module):
 
         self.down = AntiAliasInterpolation2d(num_channels, scale_factor) if scale_factor != 1 else None
 
-    def forward(self, x):
+    def forward(self, x) -> dict[str, Tensor]:
         if self.down:
             x = self.down(x)
 

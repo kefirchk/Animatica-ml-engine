@@ -1,5 +1,6 @@
+from src.ml.datasets import FramesDataset
 from src.ml.runners.base import BaseRunner
-from src.ml.services import FramesDataset, TrainingService
+from src.ml.services.training import TrainingService
 
 
 class TrainingRunner(BaseRunner):
