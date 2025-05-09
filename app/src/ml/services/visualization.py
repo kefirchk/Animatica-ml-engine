@@ -10,7 +10,7 @@ class VisualizationService:
         self.draw_border = draw_border
         self.colormap = plt.get_cmap(colormap)
 
-    def draw_image_with_kp(self, image, kp_array):
+    def draw_image_with_kp(self, image, kp_array) -> np.ndarray:
         image = np.copy(image)
         spatial_size = np.array(image.shape[:2][::-1])[np.newaxis]
         kp_array = spatial_size * (kp_array + 1) / 2
@@ -20,18 +20,18 @@ class VisualizationService:
             image[rr, cc] = np.array(self.colormap(kp_ind / num_kp))[:3]
         return image
 
-    def create_image_column_with_kp(self, images, kp):
+    def create_image_column_with_kp(self, images, kp) -> np.ndarray:
         image_array = np.array([self.draw_image_with_kp(v, k) for v, k in zip(images, kp)])
         return self.create_image_column(image_array)
 
-    def create_image_column(self, images):
+    def create_image_column(self, images) -> np.ndarray:
         if self.draw_border:
             images = np.copy(images)
             images[:, :, [0, -1]] = (1, 1, 1)
             images[:, :, [0, -1]] = (1, 1, 1)
         return np.concatenate(list(images), axis=0)
 
-    def create_image_grid(self, *args):
+    def create_image_grid(self, *args) -> np.ndarray:
         out = []
         for arg in args:
             if type(arg) == tuple:
@@ -40,7 +40,7 @@ class VisualizationService:
                 out.append(self.create_image_column(arg))
         return np.concatenate(out, axis=1)
 
-    def visualize(self, driving, source, out):
+    def visualize(self, driving, source, out) -> np.ndarray:
         images = []
 
         # Source image with keypoints
