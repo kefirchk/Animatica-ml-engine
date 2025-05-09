@@ -4,10 +4,10 @@ from time import gmtime, strftime
 
 import torch
 import yaml
+from src.ml.datasets.replicate import DataParallelWithCallback
 from src.ml.modules.discriminator import MultiScaleDiscriminator
 from src.ml.modules.generator import OcclusionAwareGenerator
 from src.ml.modules.keypoint_detector import KPDetector
-from src.ml.services.sync_batchnorm import DataParallelWithCallback
 
 
 class ModelService:

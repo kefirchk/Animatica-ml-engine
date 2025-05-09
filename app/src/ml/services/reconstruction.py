@@ -3,8 +3,8 @@ import os
 import cv2
 import numpy as np
 import torch
+from src.ml.datasets.replicate import DataParallelWithCallback
 from src.ml.services.logging import LoggingService
-from src.ml.services.sync_batchnorm import DataParallelWithCallback
 from src.ml.services.visualization import VisualizationService
 from torch.utils.data import DataLoader
 from tqdm import tqdm

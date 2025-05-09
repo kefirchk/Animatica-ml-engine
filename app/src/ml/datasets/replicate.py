@@ -4,8 +4,6 @@ import torch
 import torch.nn as nn
 from torch.nn.parallel.data_parallel import DataParallel
 
-__all__ = ["CallbackContext", "execute_replication_callbacks", "DataParallelWithCallback", "patch_replication_callback"]
-
 
 class CallbackContext:
     pass
@@ -49,7 +47,7 @@ class DataParallelWithCallback(DataParallel):
     """
 
     def replicate(self, module, device_ids):
-        modules = super(DataParallelWithCallback, self).replicate(module, device_ids)
+        modules = super().replicate(module, device_ids)
         execute_replication_callbacks(modules)
         return modules
 

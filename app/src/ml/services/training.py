@@ -1,11 +1,11 @@
 import torch
 from src.ml.datasets.dataset_repeater import DatasetRepeater
+from src.ml.datasets.replicate import DataParallelWithCallback
 from src.ml.modules.discriminator.discriminator_full_model import (
     DiscriminatorFullModel,
 )
 from src.ml.modules.generator import GeneratorFullModel
 from src.ml.services.logging import LoggingService
-from src.ml.services.sync_batchnorm import DataParallelWithCallback
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 from tqdm import trange
