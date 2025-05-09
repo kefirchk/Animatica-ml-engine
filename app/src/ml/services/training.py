@@ -13,7 +13,9 @@ from tqdm import trange
 
 class TrainingService:
     @staticmethod
-    def train(config, generator, discriminator, kp_detector, checkpoint, log_dir, dataset, device_ids):
+    def train(
+        config: dict, generator, discriminator, kp_detector, checkpoint: str, log_dir: str, dataset, device_ids: list
+    ) -> None:
         train_params = config["train_params"]
 
         optimizer_generator = torch.optim.Adam(

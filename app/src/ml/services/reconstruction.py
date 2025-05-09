@@ -14,7 +14,7 @@ log = LoggingService.setup_logger(__name__)
 
 class ReconstructionService:
     @staticmethod
-    def reconstruction(config, generator, kp_detector, checkpoint: str, log_dir: str, dataset) -> None:
+    def reconstruction(config: dict, generator, kp_detector, checkpoint: str, log_dir: str, dataset) -> None:
         png_dir = os.path.join(log_dir, "reconstruction/png")
         log_dir = os.path.join(log_dir, "reconstruction")
 
