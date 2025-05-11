@@ -5,7 +5,7 @@ from src.ml.services.animation import AnimationService
 
 class AnimationRunner(BaseRunner):
     def __init__(self, args, log):
-        super(AnimationRunner, self).__init__(args, log)
+        super().__init__(args, log)
         self.animation_service = AnimationService()
 
     def run(self):
