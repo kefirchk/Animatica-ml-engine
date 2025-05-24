@@ -138,25 +138,29 @@ class VideoAnimationService:
         return predictions_backward[::-1] + predictions_forward[1:]
 
     def _save_video(self, frames: list[np.ndarray], fps: float) -> None:
-        """Save frames to video file with proper encoding."""
-        if not frames:
-            raise ValueError("No frames to save")
+        """Save frames as images, then encode with ffmpeg directly to mp4 (H.264)"""
+        import subprocess
+        import tempfile
 
-        height, width = frames[0].shape[:2]
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        import imageio.v2 as imageio
 
-        out = None
-        try:
-            out = cv2.VideoWriter(self.result_video_path, fourcc, fps, (width, height))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Save all frames
+            for i, frame in enumerate(frames):
+                imageio.imwrite(f"{tmpdir}/frame_{i:04d}.png", img_as_ubyte(frame))
 
-            if not out.isOpened():
-                raise IOError("Could not open video writer")
-
-            for frame in frames:
-                # Convert frame to proper format
-                frame_bgr = cv2.cvtColor(img_as_ubyte(frame), cv2.COLOR_RGB2BGR)
-                out.write(frame_bgr)
-
-            self.log.info(f"Successfully saved video to {self.result_video_path}")
-        finally:
-            out.release() if "out" in locals() else None
+            # Encode with ffmpeg (H.264, web-compatible)
+            cmd = [
+                "ffmpeg",
+                "-y",
+                "-r",
+                str(fps),
+                "-i",
+                f"{tmpdir}/frame_%04d.png",
+                "-c:v",
+                "libx264",
+                "-pix_fmt",
+                "yuv420p",
+                self.result_video_path,
+            ]
+            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
