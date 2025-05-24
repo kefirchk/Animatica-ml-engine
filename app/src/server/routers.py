@@ -6,7 +6,7 @@ from typing import Iterator
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from src.ml.services.video_animation import VideoAnimationService
-from starlette.responses import StreamingResponse
+from starlette.responses import Response, StreamingResponse
 
 router = APIRouter(prefix="/fomm", tags=["First Order Motion Model"])
 log = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ async def animate_image_by_video(
             source_image_path=temp_image_path,
             driving_video_path=temp_video_path,
             result_video_path=output_video_path,
-            relative=False,
+            relative=True,
             adapt_scale=False,
             find_best=False,
             best_frame=None,
