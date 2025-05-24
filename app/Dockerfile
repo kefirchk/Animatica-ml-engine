@@ -1,8 +1,8 @@
-FROM python:3.12-slim
+FROM python:3.12
 
 ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
-    ML_ENGINE_KEY=your-secret-key \
+    TZ=UTC \
     API_MODE=local \
     LOG_LEVEL=info
 
@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxext6 \
     libglvnd0 \
     libgomp1 \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
