@@ -142,9 +142,47 @@ You can use __Docker-compose__ with [Animatica-backend](https://github.com/kefir
 My ready-made image:
 [kefirchk/animatica-ml-engine:latest](https://hub.docker.com/r/kefirchk/animatica-ml-engine)
 
+## System Design
+
+![system design](docs/animatica-ml-engine-design-diagram.png)
+
+![FOMM 1](docs/FOMM%201.png)
+
+![FOMM 2](docs/FOMM%202.png)
+
 ## Demo
 
-![test demo](docs/demo.gif)
+<div style="text-align: center;">
+
+![demo 1](docs/demo.gif) \
+_Real Time Demo_
+</div>
+
+---
+
+<div style="text-align: center;">
+    
+![source image](docs/monolisa.jpg) \
+_Source Image_
+</div>
+
+---
+
+<div style="text-align: center;">
+
+![driving video](docs/my_face.gif) \
+_Driving Video_
+</div>
+
+---
+
+<div style="text-align: center;">
+    
+![result](docs/result.gif) \
+_Animated Image (result)_
+</div>
+
+---
 
 ## TODO
 - [x] Add pre-commit.
