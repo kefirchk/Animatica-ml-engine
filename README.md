@@ -150,6 +150,8 @@ My ready-made image:
 
 ![FOMM 2](docs/FOMM%202.png)
 
+![FOMM 3](docs/FOMM%203.png)
+
 ## Demo
 
 <div style="text-align: center;">
